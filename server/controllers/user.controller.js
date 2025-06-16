@@ -43,3 +43,34 @@ export const signup = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.json({ success: false, message: "Missing details" });
+    }
+
+    const getUser = await User.findOne({ email });
+
+    const isPasswordMatch = await bcrypt.compare(password, getUser.password);
+
+    if (!isPasswordMatch) {
+      return res.json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Generate auth token
+    const token = generateToken(getUser._id);
+
+    res.json({
+      success: true,
+      userData: getUser,
+      authToken: token,
+      message: "Login successful",
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
